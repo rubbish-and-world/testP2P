@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+    <body>
+        <div id="peerID"></div>
+        <div id="otherID"></div>
+        <div id="status"></div>
+
+
+        <input type="text" id="message">
+        <button onclick="sendMessage()">Send Message</button>
+
+        <div id="buffer"></div>
+    </body>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script>
+        var peer = new Peer({            
+            config : {
+                'iceServers' : [
+                    { url: 'stun:stun.l.google.com:19302' }
+                ]
+            }});
+
+        var peerID  = document.getElementById('peerID');
+        var otherID = document.getElementById('otherID');
+        var stat = document.getElementById('status');
+        var buffer = document.getElementById('buffer');
+
+        var conn = null ;
+
+
+        peer.on('open', function(id) {
+	        console.log('My peer ID is: ' + id);
+            peerID.innerText = 'My peer ID is: ' + id ;
+  });
+    // waiting for connection
+    peer.on('connection', function(c) { 
+        conn = c ;
+        //once p2p is established
+        otherID.innerText = "Connected with " + conn.peer ;
+        stat.innerText = "The connection is " + conn.open ;
+
+        //open the connection
+        conn.on('open' , function(){  
+            stat.innerText = "Connection turned to open : " + conn.open ;
+          });
+
+        //register handlers
+        conn.on('data' , function(data) {
+            let show = document.createElement('div');
+            show.innerText = "Peer : " + data ;
+            buffer.appendChild(show);
+            console.log("received : " + data);
+        })
+     });
+
+
+        function sendMessage(){
+            let message = document.getElementById('message').value ;
+            conn.send(message);
+            console.log("sent : " + message);
+            let me = document.createElement('div');
+            me.innerText = "Me : " + message;
+            buffer.append(me);
+        }
+    </script>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+    <body>
+        <div id="peerID"> ID :</div>
+        <div id="otherID"></div>
+        <div id="status"></div>
+        <input id="destID">
+        <button onclick="connectPeer()">Connect</button>
+
+        <input type="text" id="message">
+        <button onclick="sendMessage()">Send Message</button>
+
+        <div id="buffer"></div>
+    </body>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script>
+
+        var peerID = document.getElementById('peerID');
+        var otherID = document.getElementById('otherID');
+        var stat = document.getElementById('status');
+        var buffer = document.getElementById('buffer');
+
+        var conn = null ;
+
+        var peer = new Peer({
+            config : {
+                'iceServers' : [
+                    { url: 'stun:stun.l.google.com:19302' }
+                ]
+            }
+        });
+
+        //create a new peer
+        peer.on('open', function(id) {
+	    console.log('My peer ID is: ' + id);
+            peerID.textContent = 'My peer ID is: ' + id;
+        });
+
+        function connectPeer(){
+            var destID = document.getElementById('destID').value;
+            console.log("try to connect to " + destID)
+
+            //connect to peer
+            conn = peer.connect(destID,  {reliable : true});
+
+            console.log("connected to : " + conn.peer);
+            otherID.innerText = "connected to : " + conn.peer ;
+            stat.innerText = "Connection is " + conn.open ;
+            
+            // open the connection
+            conn.on('open' , function () {
+                stat.innerHTML = "Connection turned to open " + conn.open ;
+            });
+
+            //register handlers
+            conn.on('data' , function(data) {
+            let show = document.createElement('div');
+            show.innerText = 'Peer : ' + data ;
+            buffer.appendChild(show);
+            console.log("received : " + data);
+            })
+        }
+
+
+        function sendMessage(){
+            let message = document.getElementById('message').value ;
+            conn.send(message);
+            console.log("sent : " + message);
+            let me = document.createElement('div');
+            me.innerText = "Me : " + message;
+            buffer.append(me);
+        }
+    </script>
+</html>
